@@ -543,6 +543,26 @@ void EGLAPI eglBeginFrame(EGLDisplay dpy, EGLSurface surface) {
 // ----------------------------------------------------------------------------
 // Contexts
 // ----------------------------------------------------------------------------
+EGLBoolean isValidContext(EGLContext ctx)
+{
+    egl_context_t* const c = static_cast<egl_context_t*>(ctx);
+
+    // the msync system call returns with ENOMEM error for unmapped memory
+    // pages.  This is used here as a way to test whether we can read through a
+    // pointer without getting a segfault.
+    uintptr_t pagesize = (uintptr_t) sysconf(_SC_PAGESIZE);
+    uintptr_t addr = ((uintptr_t)(&c->magic)) & (~(pagesize - 1));
+    int rc = msync((void *)addr, pagesize, MS_ASYNC);
+    if (0 == rc) {
+        return c->isValid();
+    }
+    if (ENOMEM == errno) {
+        ALOGE("Context refers to unmapped memory.");
+        return EGL_FALSE;
+    }
+    ALOGE("error unexpected msync error: %s (%d)", strerror(errno), errno);
+    return EGL_FALSE;
+}
 
 EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
                             EGLContext share_list, const EGLint *attrib_list)
@@ -553,6 +573,10 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
     const egl_display_ptr dp = validate_display_connection(dpy, cnx);
     if (dpy) {
         if (share_list != EGL_NO_CONTEXT) {
+            if(!isValidContext(share_list)) {
+                ALOGE("EGLContext %p invalid", share_list);
+                return setError(EGL_BAD_CONTEXT, EGL_NO_CONTEXT);
+            }
             egl_context_t* const c = get_context(share_list);
             share_list = c->context;
         }

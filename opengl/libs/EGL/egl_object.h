@@ -144,6 +144,9 @@ protected:
     ~egl_context_t() {}
 public:
     typedef egl_object_t::LocalRef<egl_context_t, EGLContext> Ref;
+    enum {
+        MAGIC   =   0xabcdef01
+    };
 
     egl_context_t(EGLDisplay dpy, EGLContext context, EGLConfig config,
             egl_connection_t const* cnx, int version);
@@ -151,6 +154,12 @@ public:
     void onLooseCurrent();
     void onMakeCurrent(EGLSurface draw, EGLSurface read);
 
+    bool isValid() const {
+        ALOGE_IF(magic != MAGIC, "invalid EGLContext (%p)", this);
+        return magic == MAGIC;
+    }
+
+    uint32_t magic;
     EGLDisplay dpy;
     EGLContext context;
     EGLConfig config;

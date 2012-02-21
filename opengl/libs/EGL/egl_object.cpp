@@ -87,7 +87,7 @@ egl_surface_t::~egl_surface_t() {
 egl_context_t::egl_context_t(EGLDisplay dpy, EGLContext context, EGLConfig config,
         egl_connection_t const* cnx, int version) :
     egl_object_t(get_display_nowake(dpy)), dpy(dpy), context(context),
-            config(config), read(0), draw(0), cnx(cnx), version(version) {
+            config(config), read(0), draw(0), cnx(cnx), version(version), magic(MAGIC) {
 }
 
 void egl_context_t::onLooseCurrent() {
