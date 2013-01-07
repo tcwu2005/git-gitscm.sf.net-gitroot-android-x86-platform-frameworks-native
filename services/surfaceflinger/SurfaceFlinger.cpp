@@ -669,6 +669,20 @@ void SurfaceFlinger::waitForEvent() {
     mEventQueue.waitMessage();
 }
 
+#if __i386__
+void SurfaceFlinger::screenReleased(const sp<IBinder>& display) {
+    // this may be called by a signal handler, we can't do too much in here
+    blank(display);
+    mEventQueue.invalidate();
+}
+
+void SurfaceFlinger::screenAcquired(const sp<IBinder>& display) {
+    // this may be called by a signal handler, we can't do too much in here
+    unblank(display);
+    mEventQueue.invalidate();
+}
+#endif
+
 void SurfaceFlinger::signalTransaction() {
     mEventQueue.invalidate();
 }

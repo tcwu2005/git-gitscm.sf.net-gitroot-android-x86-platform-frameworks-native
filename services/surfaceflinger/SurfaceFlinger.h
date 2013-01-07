@@ -121,6 +121,9 @@ public:
     // TODO: this should be made accessible only to HWComposer
     const Vector< sp<Layer> >& getLayerSortedByZForHwcDisplay(int id);
 
+    void screenReleased(const sp<IBinder>& display);
+    void screenAcquired(const sp<IBinder>& display);
+
 private:
     friend class Client;
     friend class DisplayEventConnection;

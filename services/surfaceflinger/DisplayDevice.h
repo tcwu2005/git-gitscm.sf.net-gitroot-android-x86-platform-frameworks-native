@@ -33,6 +33,7 @@
 #include "Transform.h"
 
 struct ANativeWindow;
+struct ConsoleManagerThread;
 
 namespace android {
 
@@ -193,6 +194,7 @@ private:
     // Whether the screen is blanked;
     mutable int mScreenAcquired;
 
+    sp<ConsoleManagerThread> mConsoleManagerThread;
 
     /*
      * Transaction state
