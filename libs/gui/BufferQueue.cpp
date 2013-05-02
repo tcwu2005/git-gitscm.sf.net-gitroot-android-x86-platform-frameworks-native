@@ -1000,7 +1000,7 @@ void BufferQueue::freeAllBuffersExceptHeadLocked() {
 }
 
 status_t BufferQueue::drainQueueLocked() {
-    const nsecs_t timeout = 300000; // 0.3s seems a reasonable wait for a valid consumer
+    const nsecs_t timeout = 300000000; // 0.3s seems a reasonable wait for a valid consumer
     nsecs_t start = systemTime();
     while (mSynchronousMode && mQueue.size() > 1) {
         mDequeueCondition.waitRelative(mMutex, timeout);
