@@ -1000,8 +1000,14 @@ void BufferQueue::freeAllBuffersExceptHeadLocked() {
 }
 
 status_t BufferQueue::drainQueueLocked() {
+    const nsecs_t timeout = 300000000; // 0.3s seems a reasonable wait for a valid consumer
+    nsecs_t start = systemTime();
     while (mSynchronousMode && mQueue.size() > 1) {
-        mDequeueCondition.wait(mMutex);
+        mDequeueCondition.waitRelative(mMutex, timeout);
+        if(systemTime() - start >= timeout) {
+            ST_LOGE("BufferQueue:drainQueueLocked: timeout waiting on consumer!");
+            return NO_INIT;
+        }
         if (mAbandoned) {
             ST_LOGE("drainQueueLocked: BufferQueue has been abandoned!");
             return NO_INIT;
