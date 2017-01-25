@@ -528,7 +528,8 @@ void HWComposer::eventControl(int disp, int event, int enabled) {
         const int32_t oldValue = mDisplayData[disp].events & eventBit;
         if (newValue != oldValue) {
             ATRACE_CALL();
-            err = mHwc->eventControl(mHwc, disp, event, enabled);
+           // err = mHwc->eventControl(mHwc, disp, event, enabled);
+	    err = mHwc->eventControl ? mHwc->eventControl(mHwc, disp, event, enabled) : NO_ERROR;//SVMP
             if (!err) {
                 int32_t& events(mDisplayData[disp].events);
                 events = (events & ~eventBit) | newValue;
@@ -783,6 +784,7 @@ status_t HWComposer::setPowerMode(int disp, int mode) {
         if (hwcHasApiVersion(mHwc, HWC_DEVICE_API_VERSION_1_4)) {
             return (status_t)mHwc->setPowerMode(mHwc, disp, mode);
         } else {
+	    if(mHwc->blank)//SVMP
             return (status_t)mHwc->blank(mHwc, disp,
                     mode == HWC_POWER_MODE_OFF ? 1 : 0);
         }

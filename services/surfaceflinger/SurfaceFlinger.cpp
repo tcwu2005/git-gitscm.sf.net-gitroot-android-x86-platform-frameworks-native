@@ -1153,9 +1153,49 @@ void SurfaceFlinger::setUpHWComposer() {
         }
     }
 }
-
+/////tcwu2005, 2017
 void SurfaceFlinger::doComposition() {
     ATRACE_CALL();
+    /***********************************************************
+       IF FILE (char * path) EXISTS AND CONTENT ONE BYTE ASCII
+       '0', STOP SURFACEFLINGER FROM DOCOMPOSITION,
+       ELSE KEPP RUNNING THE WAY IT WAS
+    ************************************************************/
+    //ALOGE("================= tcwu2005, 2017 ===============");
+    const char * path="/data/surfaceflinger/control";
+    static int fd=0;
+    char buf[10];
+    int size;
+    bool flagNotToRun=false;
+    if(fd==0){
+        fd=open(path,O_RDONLY);
+        if(fd==0)
+            ALOGE("!!!File (%s) open fail",path);
+        else
+            ALOGE("File (%s) open ok",path);
+    } else {
+        lseek(fd,0,SEEK_SET);
+        size=read(fd,buf,1);
+        //ALOGE("read return size=%d",size);
+        if(size==1){
+            //ALOGE("buf[0]=%d",buf[0]);
+            if(buf[0]=='0'){
+                flagNotToRun=true;
+                //ALOGE("flagNotToRun=%s",flagNotToRun?"true":"false");
+            }else{
+                flagNotToRun=false;
+                //ALOGE("flagNotToRun=%s",flagNotToRun?"true":"false");
+            }
+        }else
+            flagNotToRun=false;
+    }
+
+    /**********************************************************/
+    if (flagNotToRun==true)
+        return ;
+    /**********************************************************/
+    
+    
     const bool repaintEverything = android_atomic_and(0, &mRepaintEverything);
     for (size_t dpy=0 ; dpy<mDisplays.size() ; dpy++) {
         const sp<DisplayDevice>& hw(mDisplays[dpy]);
@@ -3259,6 +3299,16 @@ status_t SurfaceFlinger::captureScreenImplLocked(
                 // turn it into a texture
                 EGLImageKHR image = eglCreateImageKHR(mEGLDisplay, EGL_NO_CONTEXT,
                         EGL_NATIVE_BUFFER_ANDROID, buffer, NULL);
+#if 0
+		FILE *pFile;
+			pFile = fopen( "/dev/graphics/fb0","wb" );
+			if( NULL == pFile ){
+    			printf( "open failure" );
+			}else{
+			fwrite(buffer,1,sizeof(buffer),pFile);
+			}
+			fclose(pFile);
+#endif
                 if (image != EGL_NO_IMAGE_KHR) {
                     // this binds the given EGLImage as a framebuffer for the
                     // duration of this scope.
